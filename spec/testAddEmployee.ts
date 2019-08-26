@@ -2,7 +2,9 @@ require("jasmine")
 import { AddSalariedEmployee, AddHourlyEmployee, AddCommissionedEmployee } from "../payroll_system/transaction"
 import { Employee } from "../payroll_system/employee"
 import { PayrollDatabase } from "../payroll_system/payroll_database"
-import { HourlyClassification } from "../payroll_system/classification";
+import { HourlyClassification, PaymentClassification, SalariedClassification, CommissionedClassification } from "../payroll_system/payment_classification";
+import { WeeklySchedule, PaymentSchedule, BiweeklySchedule, MonthlySchedule } from "../payroll_system/payment_schedule";
+import { PaymentMethod, HoldMethod } from "../payroll_system/payment_method";
 
 
 describe("TestAddEmployee", () => {
@@ -17,7 +19,10 @@ describe("TestAddEmployee", () => {
         );
         addSalariedEmployee.execute();
 
-        const employee: Employee = PayrollDatabase.getEmployee(empId);
+        const dbResult = PayrollDatabase.getEmployee(empId);
+        expect(typeof dbResult !== undefined).toBe(true);
+
+        const employee = dbResult as Employee;
         expect(employee.name).toBe("Bob");
 
         const paymentClassification: PaymentClassification =
@@ -29,8 +34,8 @@ describe("TestAddEmployee", () => {
         const paymentSchedule: PaymentSchedule = employee.schedule;
         expect(paymentSchedule instanceof MonthlySchedule).toBe(true);
 
-        const paymentMethod: PaymentMethod = employee.paymentMethod
-        expect(paymentMethod instanceof HoldPaymentMethod)
+        const paymentMethod: PaymentMethod = employee.paymentMethod;
+        expect(paymentMethod instanceof HoldMethod);
     });
 
     it("addHourlyEmployee", () => {
@@ -43,7 +48,9 @@ describe("TestAddEmployee", () => {
         );
         addHourlyEmployee.execute();
 
-        const employee: Employee = PayrollDatabase.getEmployee(empId);
+        const dbResult = PayrollDatabase.getEmployee(empId);
+        expect(typeof dbResult !== "undefined").toBe(true);
+        const employee: Employee = dbResult as Employee;
         expect(employee.name).toBe("Peter");
 
         const paymentClassification: PaymentClassification =
@@ -58,7 +65,7 @@ describe("TestAddEmployee", () => {
         expect(paymentSchedule instanceof WeeklySchedule).toBe(true);
 
         const paymentMethod: PaymentMethod = employee.paymentMethod;
-        expect(paymentMethod instanceof HoldPaymentMethod).toBe(true);
+        expect(paymentMethod instanceof HoldMethod).toBe(true);
     })
 
     it("addCommissionedEmployee", () => {
@@ -71,10 +78,10 @@ describe("TestAddEmployee", () => {
                                         0.10)
         addCommissionedEmployee.execute();
 
-        const employee: Employee = PayrollDatabase.getEmployee(empId);
+        const dbResult = PayrollDatabase.getEmployee(empId);
+        expect(typeof dbResult !== "undefined").toBe(true);
+        const employee: Employee = dbResult as Employee;
         expect(employee.name).toBe("John");
-        expect(employee.salary).toBe(12.00);
-        expect(employee.commissionRate).toBe(0.10);
 
         const paymentClassification: PaymentClassification =
             employee.classification;
@@ -83,12 +90,12 @@ describe("TestAddEmployee", () => {
         const commissionedClassification =
             paymentClassification as CommissionedClassification;
         expect(commissionedClassification.hourlyRate).toBe(12.00);
-        expect(commissionedClassification.commRate).toBe(0.10);
+        expect(commissionedClassification.commissionRate).toBe(0.10);
 
         const paymentSchedule: PaymentSchedule = employee.schedule;
         expect(paymentSchedule instanceof BiweeklySchedule).toBe(true);
 
         const paymentMethod: PaymentMethod = employee.paymentMethod;
-        expect(paymentMethod instanceof HoldPaymentMethod).toBe(true);
+        expect(paymentMethod instanceof HoldMethod).toBe(true);
     })
 });

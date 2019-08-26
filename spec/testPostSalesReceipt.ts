@@ -9,7 +9,8 @@ describe("testPostSalesReceipt", () => {
         const empId: number = 6;
 
         const addCommissionedEmployee: AddCommissionedEmployee =
-            new AddCommissionedEmployee(empId, "Blake",
+            new AddCommissionedEmployee(empId,
+                                        "Blake",
                                         "3rd Street on the Rue",
                                         20,
                                         0.15);
