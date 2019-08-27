@@ -1,6 +1,9 @@
 require("jasmine");
 import { AddSalariedEmployee, ServiceChargeTransaction } from "../payroll_system/transaction";
 import { PayrollDatabase } from "../payroll_system/payroll_database";
+import { Employee } from "../payroll_system/employee";
+import { UnionAffiliation } from "../payroll_system/affiliation";
+import { ServiceCharge } from "../payroll_system/service_charge";
 
 
 describe("testPostServiceChargeTransaction", () => {
@@ -15,20 +18,19 @@ describe("testPostServiceChargeTransaction", () => {
                                     "456 the new Address",
                                     1500);
         addSalariedEmployee.execute();
-        const employee: Employee | undefined =
-            PayrollDatabase.getEmployee(empId);
-        expect(employee).not.toBeUndefined();
+        const possibleEmployee = PayrollDatabase.getEmployee(empId);
+        expect(possibleEmployee).not.toBeUndefined();
+        const employee = possibleEmployee as Employee;
 
-        const unionAffiliation: UnionAffiliation =
-            new UnionAffiliation();
+        const unionAffiliation = new UnionAffiliation(45, memberId);
         employee.affiliation = unionAffiliation;
-        PayrollDatabase.addUnionMember(memberId, employee);
+        PayrollDatabase.addUnionMember(memberId, employee.empId);
         const serviceChargeTransaction: ServiceChargeTransaction =
             new ServiceChargeTransaction(memberId, today, 500);
         serviceChargeTransaction.execute();
-        const serviceCharge: ServiceCharge | undefined =
-            unionAffiliation.getServiceCharge(today);
-        expect(serviceCharge).not.toBeUndefined();
+        const possibleServiceCharge = unionAffiliation.getServiceCharge(today);
+        expect(possibleServiceCharge).not.toBeUndefined();
+        const serviceCharge = possibleServiceCharge as ServiceCharge;
         expect(serviceCharge.amount).toBe(500);
     })
 })

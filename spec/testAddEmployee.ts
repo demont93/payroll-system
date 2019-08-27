@@ -5,6 +5,7 @@ import { PayrollDatabase } from "../payroll_system/payroll_database"
 import { HourlyClassification, PaymentClassification, SalariedClassification, CommissionedClassification } from "../payroll_system/payment_classification";
 import { WeeklySchedule, PaymentSchedule, BiweeklySchedule, MonthlySchedule } from "../payroll_system/payment_schedule";
 import { PaymentMethod, HoldMethod } from "../payroll_system/payment_method";
+import { InvalidOperationException } from "../payroll_system/exceptions";
 
 
 describe("TestAddEmployee", () => {
@@ -97,5 +98,18 @@ describe("TestAddEmployee", () => {
 
         const paymentMethod: PaymentMethod = employee.paymentMethod;
         expect(paymentMethod instanceof HoldMethod).toBe(true);
+    })
+
+    it("testAddEmployeeSameIdShouldThrow", () => {
+        const empId: number = 5;
+        const addCommissionedEmployee = new AddCommissionedEmployee(empId,
+                                                                    "Jogn",
+                                                                    "Some address",
+                                                                    12.00,
+                                                                    10.00);
+        addCommissionedEmployee.execute();
+        expect(() => {
+            new AddCommissionedEmployee(empId, "Juan", "Some other address", 12.5, 0.10);
+        }).toThrowError();
     })
 });

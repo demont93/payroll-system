@@ -1,12 +1,17 @@
 require("jasmine");
-import { DeleteEmployee, ChangeEmployeeAddress, AddSalariedEmployee } from "../payroll_system/transaction";
+import { DeleteEmployee, ChangeEmployeeAddress, AddSalariedEmployee, ChangeEmployeeName, ChangeSalaried, ChangeCommissioned, ChangeHourly, ChangeHoldMethod, ChangeDirectMethod, ChangeMailMethod, ChangeAffiliationAdd, ChangeAffiliationRemove } from "../payroll_system/transaction";
 import { PayrollDatabase } from "../payroll_system/payroll_database";
+import { Employee } from "../payroll_system/employee";
+import { AddHourlyEmployee } from "../payroll_system/transaction";
+import { SalariedClassification, CommissionedClassification, HourlyClassification } from "../payroll_system/payment_classification";
+import { DirectMethod, HoldMethod, MailMethod } from "../payroll_system/payment_method";
+import { UnionAffiliation, NoAffiliation } from "../payroll_system/affiliation";
 
 
 describe("TestChangingEmployeeDetails", () => {
 
-    let empId = 2;
-    let employee: Employee | undefined;
+    let empId = 234333;
+    let employee: Employee;
 
     beforeEach(() => {
         const addHourlyEmployee = new AddHourlyEmployee(empId,
@@ -14,7 +19,9 @@ describe("TestChangingEmployeeDetails", () => {
                                                         "home",
                                                         15.25);
         addHourlyEmployee.execute();
-        employee = PayrollDatabase.getEmployee(empId);
+        const possibleEmployee = PayrollDatabase.getEmployee(empId);
+        expect(possibleEmployee).not.toBeUndefined();
+        employee = possibleEmployee as Employee;
     });
 
     afterEach(() => {
@@ -41,10 +48,11 @@ describe("TestChangingEmployeeDetails", () => {
         expect(employee.classification instanceof SalariedClassification)
             .toBe(false);
         const changeSalaried = new ChangeSalaried(empId, 9.5);
-        ChangeSalaried.execute();
+        changeSalaried.execute();
         expect(employee.classification instanceof SalariedClassification)
             .toBe(true);
-        expect(employee.classification.salary).toBe(9.5);
+        const salariedClassification = employee.classification as SalariedClassification;
+        expect(salariedClassification.salary).toBe(9.5);
     })
 
     it("TestChangingAnEmployeeToCommissionedClassification", () => {
@@ -54,48 +62,76 @@ describe("TestChangingEmployeeDetails", () => {
         changeCommissioned.execute();
         expect(employee.classification instanceof CommissionedClassification)
             .toBe(true);
-        expect(employee.classification.hourlyRate).toBe(9.5);
-        expect(employee.classification.commissionRate).toBe(0.15);
+        const commissionedClassification =
+            employee.classification as CommissionedClassification;
+        expect(commissionedClassification.hourlyRate).toBe(9.5);
+        expect(commissionedClassification.commissionRate).toBe(0.15);
     })
 
     it("TestChangingAnEmployeeToHourly", () => {
+        const deleteEmployee = new DeleteEmployee(empId);
+        deleteEmployee.execute();
         const addSalariedEmployee = new AddSalariedEmployee(empId, "Bill", "Home", 500,);
         addSalariedEmployee.execute();
-        employee = PayrollDatabase.getEmployee(empId);
+        const possibleEmployee = PayrollDatabase.getEmployee(empId);
+        expect(possibleEmployee).not.toBeUndefined();
+        employee = possibleEmployee as Employee;
         expect(employee.classification instanceof HourlyClassification)
             .toBe(false);
         const changeHourly = new ChangeHourly(empId, 9.5);
         changeHourly.execute();
         expect(employee.classification instanceof HourlyClassification)
             .toBe(true);
-        expect(employee.classification.hourlyRate).toBe(9.5);
-    })
+        const hourlyClassification = employee.classification as HourlyClassification;
+        expect(hourlyClassification.hourlyRate).toBe(9.5);
+    });
 
     it("TestChangingAPaymentMethodToHoldCheck", () => {
-        employee.paymentMethod = new DirectPaymentMethod();
-        expect(employee.paymentMethod instanceof HoldPaymentMethod)
+        employee.paymentMethod = new DirectMethod();
+        expect(employee.paymentMethod instanceof HoldMethod)
             .toBe(false);
         const changeHoldMethod = new ChangeHoldMethod(empId);
         changeHoldMethod.execute();
-        expect(employee.paymentMethod instanceof HoldPaymentMethod)
+        expect(employee.paymentMethod instanceof HoldMethod)
             .toBe(true);
-    })
+    });
 
     it("TestChangingAPaymentMethodToDirect", () => {
-        expect(employee.paymentMethod instanceof DirectPaymentMethod)
+        expect(employee.paymentMethod instanceof DirectMethod)
             .toBe(false);
         const changeDirectMethod = new ChangeDirectMethod(empId);
         changeDirectMethod.execute();
-        expect(employee.paymentMethod instanceof DirectPaymentMethod)
+        expect(employee.paymentMethod instanceof DirectMethod)
             .toBe(true);
-    })
+    });
 
     it("TestChangingAPaymentMethodToMail", () => {
-        expect(employee.paymentMethod instanceof MailPaymentMethod)
+        expect(employee.paymentMethod instanceof MailMethod)
             .toBe(false);
         const changeMailMethod = new ChangeMailMethod(empId);
         changeMailMethod.execute();
-        expect(employee.paymentMethod instanceof MailPaymentMethod)
+        expect(employee.paymentMethod instanceof MailMethod)
             .toBe(true);
-    })
+    });
+
+    it("TestAddRemoveAffiliationToEmployee", () => {
+        const memberId = 2343333;
+        expect(employee.affiliation instanceof NoAffiliation).toBe(true);
+        expect(PayrollDatabase.getUnionMember(memberId)).toBeUndefined();
+        const addAffiliationTransaction = new ChangeAffiliationAdd(
+            empId,
+            memberId,
+            239
+        );
+        addAffiliationTransaction.execute();
+        expect(employee.affiliation instanceof UnionAffiliation).toBe(true);
+        expect(PayrollDatabase.getUnionMember(memberId)).not.toBeUndefined();
+        expect(PayrollDatabase.getUnionMember(memberId)).toBe(employee);
+        const unionAffiliation = employee.affiliation as UnionAffiliation;
+        expect(unionAffiliation.dues).toBe(239);
+        const changeAffiliationRemove = new ChangeAffiliationRemove(empId);
+        changeAffiliationRemove.execute();
+        expect(employee.affiliation instanceof NoAffiliation).toBe(true);
+        expect(PayrollDatabase.getUnionMember(memberId)).toBeUndefined();
+    });
 })

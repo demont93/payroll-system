@@ -7,10 +7,10 @@ import { Employee } from "../payroll_system/employee";
 describe("testDeleteEmployee", () => {
 
     it("deleteEmployee", () => {
-        const empId: number = 4;
+        const empId: number = 9238;
 
         const addHourlyEmployee: AddHourlyEmployee = new AddHourlyEmployee(
-            4,
+            empId,
             "Bob",
             "Address 1",
             9.50
