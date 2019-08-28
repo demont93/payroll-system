@@ -25,4 +25,14 @@ describe("testDeleteEmployee", () => {
         employee = PayrollDatabase.getEmployee(empId);
         expect(employee).toBeUndefined();
     });
+
+    it("deleteEmployeeWithAffiliation", () => {
+        const empId = 29384;
+        const addHourlyEmployee = new AddHourlyEmployee(empId,
+                                                        "Bob",
+                                                        "Address",
+                                                        9.5);
+        // addHourlyEmployee.execute();
+        
+    })
 });
